@@ -1,0 +1,10 @@
+[
+    {
+        "name": "region",
+        "arguments": {
+            "id": 0,
+            "enabled": [],
+            "maxOutputPower": []
+        }
+    }
+]

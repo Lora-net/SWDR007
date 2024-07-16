@@ -1,0 +1,15 @@
+version = 0.5
+
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "wae-sw-tlv-prod"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-7ko8z7bhf4ej"
+s3_prefix = "wae-sw-tlv-prod"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+tags = "project=\"sw-tlv\" stage=\"production\""
+parameter_overrides = "MgsKey=\"Insert-key-here\" DestinationUri=\"Insert-URI-here\" DestinationPostApi=\"resource/here" DestinationKey=\"key-here\""
+profile = "sidewalk"

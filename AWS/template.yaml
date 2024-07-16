@@ -1,0 +1,322 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Sidewalk TLV Data Processing
+
+Globals:
+  Function:
+    Runtime: python3.12
+    MemorySize: 512
+    Timeout: 9
+    Environment:
+      Variables:
+        FragStoreTableName: !Ref FragStoreTable
+        DedupTableName: !Ref DedupTable
+        MirrorTableName: !Ref MirrorTable
+        ScanTableName: !Ref ScanTable
+        DEVEUITableName: !Ref DEVEUITable
+Parameters:
+  MgsKey:
+    Type: String
+    Description: The token as defined on the MGS website (www.loracloud.com or similar)
+  DestinationUri:
+    Type: String
+    Description: The destination for the post-solution data
+  DestinationPostApi:
+    Type: String
+    Description: The destination resource for the post-solution data
+  DestinationKey:
+    Type: String
+    Description: The destination authorization key
+Resources:
+# AWS Permissions
+  GetMirrorDataLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        #DynamoDB Access Policy
+        - PolicyName: DynamoDBTablesPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:*
+                Resource:
+                  - !GetAtt MirrorTable.Arn
+                  - !Sub '${MirrorTable.Arn}/index/*'
+                  - !GetAtt ScanTable.Arn
+                  - !Sub '${ScanTable.Arn}/index/*'
+                  - !GetAtt DEVEUITable.Arn
+                  - !Sub '${DEVEUITable.Arn}/index/*'
+        #Cloudwatch Access Policy
+        - PolicyName: CloudwatchPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudwatch:*
+                Resource:
+                  - '*'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+# Lambda function
+  SidewalkTlvProcess:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: src/
+      Description: 'Handler for Sidewalk TLV data'
+      MemorySize: 512
+      Timeout: 9
+      Handler: SidewalkTlvProcess.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      EventInvokeConfig:
+        MaximumEventAgeInSeconds: 21600
+        MaximumRetryAttempts: 2
+      EphemeralStorage:
+        Size: 512
+      Environment:
+        Variables:
+          MgsKey:
+            !Ref MgsKey
+          DestinationUri:
+            !Ref DestinationUri
+          DestinationPostApi:
+            !Ref DestinationPostApi
+          DestinationKey:
+            !Ref DestinationKey
+      Events:
+        IoTRule1:
+          Type: IoTRule
+          Properties:
+            Sql: SELECT * from 'swtlv/up'
+      PackageType: Zip
+      Policies:
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'logs:CreateLogGroup'
+            Resource: 'arn:aws:logs:us-east-1:645228041110:*'
+          - Effect: Allow
+            Action:
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
+            Resource:
+              - >-
+                arn:aws:logs:us-east-1:645228041110:log-group:/aws/lambda/SidewalkDataProcess:*
+          - Effect: Allow
+            Action:
+              - 'iot:*'
+              - 'iotjobsdata:*'
+            Resource: '*'
+          - Action:
+              - 'dynamodb:*'
+              - 'dax:*'
+              - 'application-autoscaling:DeleteScalingPolicy'
+              - 'application-autoscaling:DeregisterScalableTarget'
+              - 'application-autoscaling:DescribeScalableTargets'
+              - 'application-autoscaling:DescribeScalingActivities'
+              - 'application-autoscaling:DescribeScalingPolicies'
+              - 'application-autoscaling:PutScalingPolicy'
+              - 'application-autoscaling:RegisterScalableTarget'
+              - 'cloudwatch:DeleteAlarms'
+              - 'cloudwatch:DescribeAlarmHistory'
+              - 'cloudwatch:DescribeAlarms'
+              - 'cloudwatch:DescribeAlarmsForMetric'
+              - 'cloudwatch:GetMetricStatistics'
+              - 'cloudwatch:ListMetrics'
+              - 'cloudwatch:PutMetricAlarm'
+              - 'cloudwatch:GetMetricData'
+              - 'datapipeline:ActivatePipeline'
+              - 'datapipeline:CreatePipeline'
+              - 'datapipeline:DeletePipeline'
+              - 'datapipeline:DescribeObjects'
+              - 'datapipeline:DescribePipelines'
+              - 'datapipeline:GetPipelineDefinition'
+              - 'datapipeline:ListPipelines'
+              - 'datapipeline:PutPipelineDefinition'
+              - 'datapipeline:QueryObjects'
+              - 'ec2:DescribeVpcs'
+              - 'ec2:DescribeSubnets'
+              - 'ec2:DescribeSecurityGroups'
+              - 'iam:GetRole'
+              - 'iam:ListRoles'
+              - 'kms:DescribeKey'
+              - 'kms:ListAliases'
+              - 'sns:CreateTopic'
+              - 'sns:DeleteTopic'
+              - 'sns:ListSubscriptions'
+              - 'sns:ListSubscriptionsByTopic'
+              - 'sns:ListTopics'
+              - 'sns:Subscribe'
+              - 'sns:Unsubscribe'
+              - 'sns:SetTopicAttributes'
+              - 'lambda:CreateFunction'
+              - 'lambda:ListFunctions'
+              - 'lambda:ListEventSourceMappings'
+              - 'lambda:CreateEventSourceMapping'
+              - 'lambda:DeleteEventSourceMapping'
+              - 'lambda:GetFunctionConfiguration'
+              - 'lambda:DeleteFunction'
+              - 'resource-groups:ListGroups'
+              - 'resource-groups:ListGroupResources'
+              - 'resource-groups:GetGroup'
+              - 'resource-groups:GetGroupQuery'
+              - 'resource-groups:DeleteGroup'
+              - 'resource-groups:CreateGroup'
+              - 'tag:GetResources'
+              - 'kinesis:ListStreams'
+              - 'kinesis:DescribeStream'
+              - 'kinesis:DescribeStreamSummary'
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - 'cloudwatch:GetInsightRuleReport'
+            Effect: Allow
+            Resource: 'arn:aws:cloudwatch:*:*:insight-rule/DynamoDBContributorInsights*'
+          - Action:
+              - 'iam:PassRole'
+            Effect: Allow
+            Resource: '*'
+            Condition:
+              StringLike:
+                'iam:PassedToService':
+                  - application-autoscaling.amazonaws.com
+                  - application-autoscaling.amazonaws.com.cn
+                  - dax.amazonaws.com
+          - Effect: Allow
+            Action:
+              - 'iam:CreateServiceLinkedRole'
+            Resource: '*'
+            Condition:
+              StringEquals:
+                'iam:AWSServiceName':
+                  - replication.dynamodb.amazonaws.com
+                  - dax.amazonaws.com
+                  - dynamodb.application-autoscaling.amazonaws.com
+                  - contributorinsights.dynamodb.amazonaws.com
+                  - kinesisreplication.dynamodb.amazonaws.com
+          - Effect: Allow
+            Action:
+              - 'iotwireless:SendDataToWirelessDevice'
+            Resource: '*'
+  GetMirrorData:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: GetMirrorData.lambda_handler
+      Description: 'Get Data from mirror database'
+      CodeUri: src/
+      Role: !GetAtt GetMirrorDataLambdaRole.Arn
+      MemorySize: 512
+      Timeout: 9
+      Events:
+       GetDataPostEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref GetMirrorDataApi
+            Path: /get_data
+            Method: POST
+       GetDataGetEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref GetMirrorDataApi
+            Path: /get_data
+            Method: GET
+# APIs
+  GetMirrorDataApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "${AWS::StackName}-GetMirrorDataApi"
+      Description: "Get mirror data API"
+      EndpointConfiguration:
+        Type: REGIONAL
+      StageName: Prod
+      Cors:
+        AllowMethods: "'GET,POST'"
+        AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+        MaxAge: "'600'"
+# DynamoDB tables
+  FragStoreTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: wdid
+          AttributeType: S
+        - AttributeName: TSTAMPMS
+          AttributeType: 'N'
+      KeySchema:
+        - AttributeName: wdid
+          KeyType: HASH
+        - AttributeName: TSTAMPMS
+          KeyType: RANGE
+  DedupTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: wdid
+          AttributeType: S
+        - AttributeName: TSTAMPMS
+          AttributeType: 'N'
+      KeySchema:
+        - AttributeName: wdid
+          KeyType: HASH
+        - AttributeName: TSTAMPMS
+          KeyType: RANGE
+  MirrorTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: wdid
+          AttributeType: S
+        - AttributeName: TSTAMPMS
+          AttributeType: 'N'
+      KeySchema:
+        - AttributeName: wdid
+          KeyType: HASH
+        - AttributeName: TSTAMPMS
+          KeyType: RANGE
+  ScanTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: wdid
+          AttributeType: S
+        - AttributeName: TSTAMPMS
+          AttributeType: 'N'
+      KeySchema:
+        - AttributeName: wdid
+          KeyType: HASH
+        - AttributeName: TSTAMPMS
+          KeyType: RANGE
+  DEVEUITable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: DEVEUI
+          AttributeType: S
+      KeySchema:
+        - AttributeName: DEVEUI
+          KeyType: HASH
+Outputs:
+  GetMirrorDataApiUrl:
+    Description: API Gateway URL related to GetMirrorDataApi
+    Value: !Sub "https://${GetMirrorDataApi}.execute-api.${AWS::Region}.amazonaws.com/"

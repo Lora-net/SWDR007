@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="ASCII"?>
+<model:MDescriptors xmlns:model="http://www.silabs.com/ss/Studio.ecore">
+  <descriptors name="swdr007-src">
+    <properties key="projectCommon.sdkId" value="com.silabs.sdk.stack.super:4.4.3._1887733160"/>
+    <properties key="universalConfig.relativeWorkspacePath" value="..\swdr007-src.slcw"/>
+    <properties key="universalConfig.generationDirectory" value=""/>
+    <properties key="universalConfig.toolchainCompatibility" value="iar gcc"/>
+    <properties key="universalConfig.incrementalOverwriteConfigs" value="false"/>
+    <properties key="projectCommon.boardIds" value="brd4002a:0.0.0.A06 brd4187c:0.0.0.A01"/>
+    <properties key="projectCommon.kitId" value=""/>
+    <properties key="projectCommon.partId" value="mcu.arm.efr32.mg24.efr32mg24b220f1536im48"/>
+    <properties key="projectCommon.toolchainId" value="com.silabs.ss.tool.ide.arm.toolchain.gnu.cdt:10.3.1.20210824"/>
+    <properties key="universalConfig.projectTypeIds" value="com.silabs.ss.framework.ide.project.core.cdtMbsProjectType"/>
+    <properties key="projectCommon.importModeId" value="LINK_LIBRARIES"/>
+  </descriptors>
+</model:MDescriptors>

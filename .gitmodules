@@ -1,0 +1,3 @@
+[submodule "semtech_radio/SWDR001"]
+	path = semtech_radio/SWDR001
+	url = https://github.com/Lora-net/SWDR001.git

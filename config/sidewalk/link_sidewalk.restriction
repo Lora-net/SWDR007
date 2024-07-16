@@ -1,0 +1,10 @@
+[
+    {
+        "name": "linkType",
+        "arguments": {
+            "id": 0,
+            "enabled": [],
+            "default": "SL_SIDEWALK_LINK_BLE"
+        }
+    }
+]

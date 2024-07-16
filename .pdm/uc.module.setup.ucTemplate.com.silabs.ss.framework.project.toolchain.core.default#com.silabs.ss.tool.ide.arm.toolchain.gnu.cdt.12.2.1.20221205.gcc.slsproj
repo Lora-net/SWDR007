@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="uc.module.setup.ucTemplate.com.silabs.ss.framework.project.toolchain.core.default#com.silabs.ss.tool.ide.arm.toolchain.gnu.cdt:12.2.1.20221205.gcc" propertyScope="project">
+  <folder name="autogen">
+    <file name="app_gpio_config.c" builtin="true" generated="true"/>
+    <file name="sl_bluetooth.c" builtin="true" generated="true"/>
+    <file name="sl_bluetooth.h" builtin="true" generated="true"/>
+    <file name="sl_board_default_init.c" builtin="true" generated="true"/>
+    <file name="sl_cli_command_table.c" builtin="true" generated="true"/>
+    <file name="sl_cli_command_table.html" builtin="true" generated="true"/>
+    <file name="sl_cli_handles.h" builtin="true" generated="true"/>
+    <file name="sl_cli_instances.c" builtin="true" generated="true"/>
+    <file name="sl_cli_instances.h" builtin="true" generated="true"/>
+    <file name="sli_cli_hooks.c" builtin="true" generated="true"/>
+    <file name="RTE_Components.h" builtin="true" generated="true"/>
+    <file name="sl_component_catalog.h" builtin="true" generated="true"/>
+    <file name="sl_device_init_clocks.c" builtin="true" generated="true"/>
+    <file name="sl_event_handler.h" builtin="true" generated="true"/>
+    <file name="sl_event_handler.c" builtin="true" generated="true"/>
+    <file name="sl_iostream_handles.h" builtin="true" generated="true"/>
+    <file name="sl_iostream_handles.c" builtin="true" generated="true"/>
+    <file name="sl_iostream_init_instances.h" builtin="true" generated="true"/>
+    <file name="sli_mbedtls_config_autogen.h" builtin="true" generated="true"/>
+    <file name="sli_mbedtls_config_transform_autogen.h" builtin="true" generated="true"/>
+    <file name="sli_psa_config_autogen.h" builtin="true" generated="true"/>
+    <file name="sli_psa_builtin_config_autogen.h" builtin="true" generated="true"/>
+    <file name="sl_simple_button_instances.c" builtin="true" generated="true"/>
+    <file name="sl_simple_button_instances.h" builtin="true" generated="true"/>
+    <file name="sl_spidrv_init.c" builtin="true" generated="true"/>
+    <file name="sl_spidrv_instances.h" builtin="true" generated="true"/>
+    <file name="linkerfile.ld" builtin="true" generated="true"/>
+  </folder>
+  <includePath uri="studio:/project/autogen"/>
+</project>

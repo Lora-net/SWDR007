@@ -54,8 +54,8 @@ There are two ways to control GNSS LNA:
 - LR11xx DIO7 controls GNSS LNA: You need to make sure that **R17 populated and R18 NC** on the LR11xx shield board.
 
 - MCU GPIO controls GNSS LNA: You need to make sure that **R17 NC and R18 populated** on the LR11xx shield board. 
-  - If you use the E707V02A Adapter Board, you can directly run the code. It has been configured by the macro definition - "LR11XX_E707". 
-  - If you use the BRD8042A CSS/FSK Adapter Board, you must fly wire to connect MCU PB05 with J4-4 as GNSS LNA control pin. And you must remove the macro definition - "LR11XX_E707".
+  - If you use the E707V02A Adapter Board, you can directly run the code. It has been configured by the macro definition - `LR11XX_E707`. 
+  - If you use the BRD8042A CSS/FSK Adapter Board, you must fly wire to connect MCU PB05 with J4-4 as GNSS LNA control pin. And you must remove the macro definition - `LR11XX_E707`.
 
 ### Software
 
@@ -94,10 +94,11 @@ There are two ways to control GNSS LNA:
       swdr007\sidewalk_x.x.x\component\sources\projects\sid\sal\silabs\sid_pal\serial_bus\sid_pal_serial_bus_spi.c
       ```
 
-   2. As we use LR1110 instead of SX1262, we need to check the files for SX1262 as follow if they have been excluded from building in your Simplicity Studio. If not, you can do as this: **Select the example -> Right-click -> Resource Configurations -> Exclude from Build...** .
+   2. As we use LR1110 instead of SX1262 in the Hello Neighbor demo, we need to check the files, which are applied by SX1262, as follows, have been excluded from building in your Simplicity Studio. If not, you can set as this: **Select the folder -> Right-click -> Resource Configurations -> Exclude from Build...** .
 
       ```c
       sidewalk_x.x.x\component\sources\platform\sid_mcu\semtech\hal\sx126x
+      sidewalk_x.x.x\component\includes\platform\sid_mcu\semtech\hal\sx126x
       ```
 
 3. This project provides four examples for testing. You must select one and exclude the other three before building project. You can set in Simplicity Studio: **select the example -> right-click -> Resource Configurations -> Exclude from Build...** .
@@ -109,19 +110,19 @@ There are two ways to control GNSS LNA:
    | example_gnss      | LoRa or FSK connectivity <br />GNSS scan and uplink to LoRa Locator or AWS Lambda |
    | example_gnss_wifi | LoRa or FSK connectivity <br />GNSS+WIFI scan and uplink to LoRa Locator or AWS Lambda |
 
-4. Please check the required macro definitions as follow.
+4. Please check the required macro definitions as follows.
 
    | Macro                   | Description                                                  |
    | ----------------------- | ------------------------------------------------------------ |
-   | LR11XX_E707             | If using E707V02A Adapter Board, it must be added. Add by default. |
-   | FSK_SUPPRESS_RX_TIMEOUT | If in FSK mode, it must be added. If in LoRa mode, add or not add is the same. Add by default. |
-   | LR1121                  | If using LR1121 chip, it must be added. Not add by default.  |
+   | LR11XX_E707             | If using E707V02A Adapter Board, it must be added. Add default. |
+   | FSK_SUPPRESS_RX_TIMEOUT | If in FSK mode, it must be added. If in LoRa mode, add or not add is the same. Add default. |
+   | LR1121                  | If using LR1121 chip, it must be added. Not add default.     |
 
 5. Compile and flash the binary.
 
 ## GNSS Scan Feature
 
-If you use the GNSS scan function, you may need to install the full almanac into the LR11xx chip. It doesn't need to be updated every time, but it may need to be updated every few months. The update script - `examples\common_gnss\get_full_almanac.py` will download the latest almanac from LoRa Cloud and write it into `almanac.h`.
+If you use the GNSS scan feature, you may need to install the full almanac into the LR11xx chip. It doesn't have to be updated every time, but it may need to be updated every few months. The update script - `examples\common_gnss\get_full_almanac.py` will download the latest almanac from LoRa Cloud and write it into `almanac.h`.
 
 **NOTE**: Almanac update is only applicable to LR1110 / LR1120 chips.
 
@@ -161,7 +162,7 @@ The successful completion of the full almanac update is indicated by:
 
 ### 2. Initialization Location
 
-You need to change the latitude and longitude to your own place. Please check the macro definition in the file `examples\common_gnss\gnss.c`. 
+You need to change the latitude and longitude to your own place before you run GNSS examples. Please check the macro definitions in the file `examples\common_gnss\gnss.c`. 
 
 ```c
 #define ASSIST_LATITUDE xxx.xx
@@ -188,21 +189,21 @@ If you want to create a static library for SWDR001 driver, here are the referenc
 
 4. Build Project. You will find the static library in the *GNU ARM XXX* folder after built.
 
-## Known Issue
+## Known Issues
 
-### 1. Lost *on_msg_sent* callback occasionally on GFSK mode
+### 1. Miss *on_msg_sent* callback occasionally on GFSK mode
 
-From Sidewalk's protocol dictates, with GFSK mode, the end node will normally receive an acknowledgement from gateway after it uses *sid_put_msg()* to send an uplink. And the same packet payload will be retried 3 times until it gets an Ack. Here, there's three outcomes: 
+From Sidewalk's protocol dictates, with GFSK mode, the end node will normally receive an acknowledgement from gateway after it uses *sid_put_msg()* to send an uplink. And the same packet payload will be retried 3 times until it gets an ACK. Here, there's three outcomes: 
 
 1. The first packet is sent successfully, and the APP is notified via the *on_msg_sent* callback.
-2. If all retry fail, the APP is notified via the *on_send_error* callback.
+2. If all retries fail, the APP is notified via the *on_send_error* callback.
 3. After receiving the ACK packet, the APP is notified via the *on_msg_received* callback.
 
-There may be occur the third phenomenon while running this demo with GFSK mode. The device would be sometimes lost *on_msg_sent* callback.
+A third scenario is possible while running this demo with GFSK mode. So, the device sometimes missed *on_msg_sent* callback.
 
-### 2. Print error logs while doing GNSS and WIFI scan in FSK mode
+### 2. Print error logs while doing GNSS or WIFI scan in FSK mode
 
-While conducting validation test and field trials of this repository, several different error traces were observed. This is because the Sidewalk MAC layer attempts an operation on the LR11xx chip while doing GNSS or WIFI scan in FSK mode. But they don't interfere with work. It may occur some error logs as follows:
+While conducting validation test and field trials for this repository, several different error traces were observed. This is because the Sidewalk MAC layer attempts an operation on the LR11xx chip while doing GNSS or WIFI scan in FSK mode. But they don't interfere with work. It may occur some error logs as follows:
 
 ```plaintext
 <info> rx initiate error -13

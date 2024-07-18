@@ -2,9 +2,9 @@
 
 This repository contains the software driver that enables the [LR11xx family](https://www.semtech.com/products/wireless-rf/lora-edge) of silicon to support the Sidewalk protocol when paired with the [SiLabs EFR32MG24 MCU](https://www.silabs.com/development-tools/wireless/proprietary/pro-kit-for-amazon-sidewalk?tab=overview) and  [Amazon Sidewalk - SoC Bluetooth Sub-GHz Hello Neighbor](https://docs.silabs.com/amazon-sidewalk/latest/sidewalk-getting-started/create-and-compile-application#create-an-amazon-sidewalk-project) SDK.
 
-It contains four examples, *example_lr11xx, example_wifi, example_gnss and example_gnss_wifi*.
+It contains four examples: *example_lr11xx, example_wifi, example_gnss and example_gnss_wifi*.
 
-AWS sub-directory contains the AWS Lambda implementation that enables re-assembly of the packet stream in AWS IOT Core.
+The AWS sub-directory contains the AWS Lambda implementation that enables re-assembly and routing of the packet stream from the application in AWS IOT Core.
 
 You can learn more about the source code details from the [readme-SiLabs](./readme-SiLabs.md).
 
@@ -59,11 +59,11 @@ There are two ways to control GNSS LNA:
 
 ### Software
 
-- Using the **Gecko SDK - 32-bit and Wireless MCUs** version is v4.4.3
-- Using the **Sidewalk** version is v2.0.1
+- **Gecko SDK - 32-bit and Wireless MCUs** version is v4.4.3
+- **Sidewalk** version is v2.0.1
 - Silicon Labs Matter 2.2.2
 - GCC - GNU ARM v12.2.1
-- LR11xx family: [v2.3.0 of SWDR001](https://github.com/Lora-net/SWDR001.git) 
+- LR11xx Transceiver Driver: [v2.3.0 of SWDR001](https://github.com/Lora-net/SWDR001.git) 
 
 ## Steps to use
 
@@ -191,15 +191,17 @@ If you want to create a static library for SWDR001 driver, here are the referenc
 
 ## Known Issues
 
-### 1. Miss *on_msg_sent* callback occasionally on GFSK mode
+### 1. 'on_msg_sent' callback not generated consistently when operating in GFSK mode
 
-From Sidewalk's protocol dictates, with GFSK mode, the end node will normally receive an acknowledgement from gateway after it uses *sid_put_msg()* to send an uplink. And the same packet payload will be retried 3 times until it gets an ACK. Here, there's three outcomes: 
+When operating correctly in GFSK mode an application will receive an acknowledgement after the invokes  sid_put_msg() to send an uplink. Calling this function results in one of the the following two cases:
 
-1. The first packet is sent successfully, and the APP is notified via the *on_msg_sent* callback.
-2. If all retries fail, the APP is notified via the *on_send_error* callback.
-3. After receiving the ACK packet, the APP is notified via the *on_msg_received* callback.
+- One of the three packets is sent and acknowledged successfully and the application is notified via the on_msg_sent callback.
+- A maximum of 3 transmission attempts fail to produce an acknowledgement, the application is notified via the on_send_error callback.
 
-A third scenario is possible while running this demo with GFSK mode. So, the device sometimes missed *on_msg_sent* callback.
+On occassion, it has been observed that the the device fails to generate the on_msg_sent callback.  Silicon Labs is currently investigating this behavior under support ticket #00317659.
+
+There is a workaround for the above issue: in the application event loop function 'xQueueReceive" (described: https://www.freertos.org/a00118.html)
+ensure xTicksToWait = 0. When xQueueReceive is parameterized with xTicksToWait = 0, the issue is not present. 
 
 ### 2. Print error logs while doing GNSS or WIFI scan in FSK mode
 
@@ -211,8 +213,12 @@ While conducting validation test and field trials for this repository, several d
 <info> FskRx:rx_st:-5
 ```
 
+### 3. Command interface 'sid_dut' not available for LR1110
+
+A command interface which operates over UART known as "sid_dut" is often used by Amazon to qualify a Sidewalk device. Silicon Labs, Semtech and Amazon are investigating how to make this example code available for the EFR32x + LR110. 
+
 ## Support
 
-Ask support for Sidewalk on Silicon Labs Community at here:  https://www.silabs.com/support.
+Support for Sidewalk on Silicon Labs EFR32x MCU architecture is available at https://www.silabs.com/support.
 
-Ask support for LR11xx radio at here: https://semtech.my.site.com/ldp/ldp_support.
+Support for Semtech's LR11xx transceiver silicon and software at https://semtech.my.site.com/ldp/ldp_support.

@@ -83,7 +83,17 @@ There are two ways to control GNSS LNA:
 
    Using the above command, you will successfully clone all the repositories.
 
-2. There are a few things that need to be checked.
+2. Import and configure project.
+
+   1. Import project. Open the Simplicity Studio, Click **File->Import...->More Import Options...->Existing Projects into Workspace->Select root directory**, and select this project. Then, click finish button. 
+
+   2. Add the Sidewalk extension. Click **swdr007-src.slcp->OVERVIEW->Project Details->Import Mode->Copy contents**. Wait for a while. It will automatically configure this project. But this step will also overwrite the `autogen` folder. So, you need to run this git command below in your root repository.
+
+      ```c
+      git restore autogen/app_gpio_config.c
+      ```
+
+3. There are a few things that need to be checked before compiled.
 
    1. There are four files from GSDK that are modified. So, you need to make sure that ones from this repository are applied and not your local ones. Here are the four files as follow:
 
@@ -94,14 +104,14 @@ There are two ways to control GNSS LNA:
       swdr007\sidewalk_x.x.x\component\sources\projects\sid\sal\silabs\sid_pal\serial_bus\sid_pal_serial_bus_spi.c
       ```
 
-   2. As we use LR1110 instead of SX1262 in the Hello Neighbor demo, we need to check the files, which are applied by SX1262, as follows, have been excluded from building in your Simplicity Studio. If not, you can set as this: **Select the folder -> Right-click -> Resource Configurations -> Exclude from Build...** .
+   2. As we use LR11xx instead of SX1262 in the Hello Neighbor demo, we need to check the files, which are applied by SX1262, as follows, have been excluded from building in your Simplicity Studio. If not, you can set as this: **Select the folder -> Right-click -> Resource Configurations -> Exclude from Build...** .
 
       ```c
       sidewalk_x.x.x\component\sources\platform\sid_mcu\semtech\hal\sx126x
       sidewalk_x.x.x\component\includes\platform\sid_mcu\semtech\hal\sx126x
       ```
 
-3. This project provides four examples for testing. You must select one and exclude the other three before building project. You can set in Simplicity Studio: **select the example -> right-click -> Resource Configurations -> Exclude from Build...** .
+4. This project provides four examples for testing. You must select one and exclude the other three before building project. You can set in Simplicity Studio: **select the example -> right-click -> Resource Configurations -> Exclude from Build...** .
 
    | Example           | Description                                                  |
    | ----------------- | ------------------------------------------------------------ |
@@ -110,7 +120,7 @@ There are two ways to control GNSS LNA:
    | example_gnss      | LoRa or FSK connectivity <br />GNSS scan and uplink to LoRa Locator or AWS Lambda |
    | example_gnss_wifi | LoRa or FSK connectivity <br />GNSS+WIFI scan and uplink to LoRa Locator or AWS Lambda |
 
-4. Please check the required macro definitions as follows.
+5. Please check the required macro definitions as follows.
 
    | Macro                   | Description                                                  |
    | ----------------------- | ------------------------------------------------------------ |
@@ -118,7 +128,7 @@ There are two ways to control GNSS LNA:
    | FSK_SUPPRESS_RX_TIMEOUT | If in FSK mode, it must be added. If in LoRa mode, add or not add is the same. Add default. |
    | LR1121                  | If using LR1121 chip, it must be added. Not add default.     |
 
-5. Compile and flash the binary.
+6. Compile and flash the binary.
 
 ## GNSS Scan Feature
 
@@ -213,9 +223,9 @@ While conducting validation test and field trials for this repository, several d
 <info> FskRx:rx_st:-5
 ```
 
-### 3. Command interface 'sid_dut' not available for LR1110
+### 3. Command interface 'sid_dut' not available for LR11xx
 
-A command interface which operates over UART known as "sid_dut" is often used by Amazon to qualify a Sidewalk device. Silicon Labs, Semtech and Amazon are investigating how to make this example code available for the EFR32x + LR110. 
+A command interface which operates over UART known as "sid_dut" is often used by Amazon to qualify a Sidewalk device. Silicon Labs, Semtech and Amazon are investigating how to make this example code available for the EFR32x + LR11xx. 
 
 ## Support
 
